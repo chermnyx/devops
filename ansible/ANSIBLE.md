@@ -1,9 +1,186 @@
 # Ansible
 
+## Lab 6
+
+### Tags
+
+```bash
+$ ansible-playbook playbooks/dev/lab6.yml --list-tasks
+
+playbook: playbooks/dev/lab6.yml
+
+  play #1 (all): Lab6 Python	TAGS: []
+    tasks:
+      docker : Do apt update	TAGS: [docker, web_app-python]
+      geerlingguy.pip : Ensure Pip is installed.	TAGS: [docker, web_app-python]
+      geerlingguy.pip : Ensure pip_install_packages are installed.	TAGS: [docker, web_app-python]
+      geerlingguy.docker : Load OS-specific vars.	TAGS: [docker, web_app-python]
+      include_tasks	TAGS: [docker, web_app-python]
+      include_tasks	TAGS: [docker, web_app-python]
+      geerlingguy.docker : Install Docker packages.	TAGS: [docker, web_app-python]
+      geerlingguy.docker : Install Docker packages (with downgrade option).	TAGS: [docker, web_app-python]
+      geerlingguy.docker : Install docker-compose plugin.	TAGS: [docker, web_app-python]
+      geerlingguy.docker : Install docker-compose-plugin (with downgrade option).	TAGS: [docker, web_app-python]
+      geerlingguy.docker : Ensure /etc/docker/ directory exists.	TAGS: [docker, web_app-python]
+      geerlingguy.docker : Configure Docker daemon options.	TAGS: [docker, web_app-python]
+      geerlingguy.docker : Ensure Docker is started and enabled at boot.	TAGS: [docker, web_app-python]
+      geerlingguy.docker : Ensure handlers are notified now to avoid firewall conflicts.	TAGS: [docker, web_app-python]
+      include_tasks	TAGS: [docker, web_app-python]
+      geerlingguy.docker : Get docker group info using getent.	TAGS: [docker, web_app-python]
+      geerlingguy.docker : Check if there are any users to add to the docker group.	TAGS: [docker, web_app-python]
+      include_tasks	TAGS: [docker, web_app-python]
+      web_app : Check if docker-compose file exists	TAGS: [web_app-python, webapp, webapp-wipe]
+      web_app : Check if web app directory exists	TAGS: [web_app-python, webapp, webapp-wipe]
+      web_app : Docker Compose rm	TAGS: [web_app-python, webapp, webapp-wipe]
+      web_app : Rmdir {{ web_app_path }}	TAGS: [web_app-python, webapp, webapp-wipe]
+      web_app : Mkdir {{ web_app_path }}	TAGS: [web_app-python, webapp, webapp-install]
+      web_app : Template docker compose configuration	TAGS: [web_app-python, webapp, webapp-install]
+      web_app : Pull images	TAGS: [web_app-python, webapp, webapp-install]
+
+  play #2 (all): Lab6 Rust	TAGS: []
+    tasks:
+      docker : Do apt update	TAGS: [docker, web_app-rust]
+      geerlingguy.pip : Ensure Pip is installed.	TAGS: [docker, web_app-rust]
+      geerlingguy.pip : Ensure pip_install_packages are installed.	TAGS: [docker, web_app-rust]
+      geerlingguy.docker : Load OS-specific vars.	TAGS: [docker, web_app-rust]
+      include_tasks	TAGS: [docker, web_app-rust]
+      include_tasks	TAGS: [docker, web_app-rust]
+      geerlingguy.docker : Install Docker packages.	TAGS: [docker, web_app-rust]
+      geerlingguy.docker : Install Docker packages (with downgrade option).	TAGS: [docker, web_app-rust]
+      geerlingguy.docker : Install docker-compose plugin.	TAGS: [docker, web_app-rust]
+      geerlingguy.docker : Install docker-compose-plugin (with downgrade option).	TAGS: [docker, web_app-rust]
+      geerlingguy.docker : Ensure /etc/docker/ directory exists.	TAGS: [docker, web_app-rust]
+      geerlingguy.docker : Configure Docker daemon options.	TAGS: [docker, web_app-rust]
+      geerlingguy.docker : Ensure Docker is started and enabled at boot.	TAGS: [docker, web_app-rust]
+      geerlingguy.docker : Ensure handlers are notified now to avoid firewall conflicts.	TAGS: [docker, web_app-rust]
+      include_tasks	TAGS: [docker, web_app-rust]
+      geerlingguy.docker : Get docker group info using getent.	TAGS: [docker, web_app-rust]
+      geerlingguy.docker : Check if there are any users to add to the docker group.	TAGS: [docker, web_app-rust]
+      include_tasks	TAGS: [docker, web_app-rust]
+      web_app : Check if docker-compose file exists	TAGS: [web_app-rust, webapp, webapp-wipe]
+      web_app : Check if web app directory exists	TAGS: [web_app-rust, webapp, webapp-wipe]
+      web_app : Docker Compose rm	TAGS: [web_app-rust, webapp, webapp-wipe]
+      web_app : Rmdir {{ web_app_path }}	TAGS: [web_app-rust, webapp, webapp-wipe]
+      web_app : Mkdir {{ web_app_path }}	TAGS: [web_app-rust, webapp, webapp-install]
+      web_app : Template docker compose configuration	TAGS: [web_app-rust, webapp, webapp-install]
+      web_app : Pull images	TAGS: [web_app-rust, webapp, webapp-install]
+```
+
+### Playbook `app_python.yml`
+
+```bash
+ansible-playbook playbooks/dev/app_python.yml -e web_app_full_wipe=true --diff 2>&1 | tail --lines=50
+-  directories: []
+-  files:
+-  - /app_python/docker-compose.yml
+-state: directory
++state: absent
+
+changed: [test1]
+
+TASK [web_app : Mkdir /app_python] *********************************************
+--- before
++++ after
+@@ -1,2 +1,2 @@
+ path: /app_python
+-state: absent
++state: directory
+
+changed: [test1]
+
+TASK [web_app : Template docker compose configuration] *************************
+--- before
++++ after: /home/chermnyx/.ansible/tmp/ansible-local-95160806lxj9h/tmp33nqims3/docker-compose.yml.j2
+@@ -0,0 +1,16 @@
++version: '3.7'
++services:
++  'app_python':
++    image: 'docker.io/chermnyx/inno-devops-python'
++    container_name: 'app_python'
++    restart: always
++    ports:
++      - '5000:8080'
++    healthcheck:
++      test:
++        - CMD-SHELL
++        - wget --no-verbose --tries=1 -O /dev/null http://localhost:8080/healthcheck || exit 1
++      interval: 1m30s
++      timeout: 10s
++      retries: 3
++      start_period: 5s
+
+changed: [test1]
+
+TASK [web_app : Pull images] ***************************************************
+changed: [test1]
+
+RUNNING HANDLER [web_app : WebApp docker compose restart] **********************
+changed: [test1]
+
+PLAY RECAP *********************************************************************
+test1                      : ok=20   changed=7    unreachable=0    failed=0    skipped=13   rescued=0    ignored=0
+```
+
+### Playbook `app_rust.yml`
+
+```bash
+ansible-playbook playbooks/dev/app_rust.yml -e web_app_full_wipe=true --diff 2>&1 | tail --lines=50
+
+-  directories: []
+-  files:
+-  - /app_rust/docker-compose.yml
+-state: directory
++state: absent
+
+changed: [test1]
+
+TASK [web_app : Mkdir /app_rust] ***********************************************
+--- before
++++ after
+@@ -1,2 +1,2 @@
+ path: /app_rust
+-state: absent
++state: directory
+
+changed: [test1]
+
+TASK [web_app : Template docker compose configuration] *************************
+--- before
++++ after: /home/chermnyx/.ansible/tmp/ansible-local-95552jooagw2_/tmpsr7vi_2f/docker-compose.yml.j2
+@@ -0,0 +1,16 @@
++version: '3.7'
++services:
++  'app_rust':
++    image: 'docker.io/chermnyx/inno-devops-rust'
++    container_name: 'app_rust'
++    restart: always
++    ports:
++      - '5001:8080'
++    healthcheck:
++      test:
++        - CMD-SHELL
++        - wget --no-verbose --tries=1 -O /dev/null http://localhost:8080/healthcheck || exit 1
++      interval: 1m30s
++      timeout: 10s
++      retries: 3
++      start_period: 5s
+
+changed: [test1]
+
+TASK [web_app : Pull images] ***************************************************
+changed: [test1]
+
+RUNNING HANDLER [web_app : WebApp docker compose restart] **********************
+changed: [test1]
+
+PLAY RECAP *********************************************************************
+test1                      : ok=20   changed=7    unreachable=0    failed=0    skipped=13   rescued=0    ignored=0
+```
+
 ## Lab 5
 
 ```bash
-$ ansible-playbook playbooks/dev/lab5.yml --diff 2>&1 | tail --lines=50 
+$ ansible-playbook playbooks/dev/lab5.yml --diff 2>&1 | tail --lines=50
   docker-scan-plugin libltdl7 libslirp0 pigz slirp4netns
 0 upgraded, 9 newly installed, 0 to remove and 19 not upgraded.
 changed: [test1]
@@ -52,7 +229,7 @@ TASK [geerlingguy.docker : include_tasks] **************************************
 skipping: [test1]
 
 PLAY RECAP *********************************************************************
-test1                      : ok=18   changed=9    unreachable=0    failed=0    skipped=12   rescued=0    ignored=0   
+test1                      : ok=18   changed=9    unreachable=0    failed=0    skipped=12   rescued=0    ignored=0
 
 ```
 
